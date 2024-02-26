@@ -11,8 +11,13 @@ type Repository struct {
 }
 
 type Build struct {
+	Triggers  []BuildTrigger
 	Stages    []BuildStage
 	Artifacts []string
+}
+
+type BuildTrigger struct {
+	Cron string
 }
 
 type BuildStage struct {
