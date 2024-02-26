@@ -7,8 +7,8 @@ import (
 )
 
 func NewOSProvider(artifactsDirectory string) UploaderProvider {
-	providerFunc := func(projectID, runID string) (Uploader, error) {
-		projectDirectory := path.Join(artifactsDirectory, projectID)
+	providerFunc := func(pipelineID, runID string) (Uploader, error) {
+		projectDirectory := path.Join(artifactsDirectory, pipelineID)
 
 		err := os.MkdirAll(projectDirectory, os.ModePerm)
 		if err != nil {
@@ -21,21 +21,16 @@ func NewOSProvider(artifactsDirectory string) UploaderProvider {
 			return nil, err
 		}
 
-		uploader := &osUploader{
-			runDirectory: runDirectory,
-		}
-		return uploader, nil
+		return osUploader(runDirectory), nil
 	}
 
 	return providerFunc
 }
 
-type osUploader struct {
-	runDirectory string
-}
+type osUploader string
 
-func (o *osUploader) Upload(name string, reader io.Reader) error {
-	filePath := path.Join(o.runDirectory, name)
+func (uploader osUploader) Upload(name string, reader io.Reader) error {
+	filePath := path.Join(string(uploader), name)
 	file, err := os.Create(filePath)
 	if err != nil {
 		return err
@@ -49,6 +44,6 @@ func (o *osUploader) Upload(name string, reader io.Reader) error {
 	return nil
 }
 
-func (o *osUploader) Close() error {
+func (uploader osUploader) Close() error {
 	return nil
 }
