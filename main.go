@@ -2,10 +2,13 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"path"
 
+	"github.com/c-128/auroraci/internal/pipelines"
+	"github.com/c-128/auroraci/internal/pipelines/artifacts"
+	"github.com/c-128/auroraci/internal/pipelines/logger"
+	"github.com/c-128/auroraci/internal/pipelines/triggers"
 	"github.com/docker/docker/client"
 )
 
@@ -26,11 +29,23 @@ func main() {
 		panic(err)
 	}
 
+	err = pipelines.LoadPipelines(pipelinesDirectory)
+	if err != nil {
+		panic(err)
+	}
+
 	// DOCKER_HOST environment variable
 	docker, err := client.NewClientWithOpts(client.WithHostFromEnv())
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Println(docker)
+	uploaderProvider := artifacts.NewOSProvider(artifactsDirectory)
+	logger := logger.NewStdoutLogger()
+
+	triggers.CronTriggerJob(
+		logger,
+		uploaderProvider,
+		docker,
+	)
 }
