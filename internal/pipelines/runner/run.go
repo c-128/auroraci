@@ -14,7 +14,7 @@ func RunPipeline(
 	logger logger.Logger,
 	uploader artifacts.Uploader,
 	docker *client.Client,
-	pipeline pipelines.Pipeline,
+	pipeline *pipelines.Pipeline,
 ) error {
 	defer logger.Close()
 	defer uploader.Close()
@@ -22,6 +22,7 @@ func RunPipeline(
 	logger.Printf("Cloning repository \"%s\"", pipeline.Repository.Origin)
 	worktree, err := cloneRepository(pipeline.Repository)
 	if err != nil {
+		logger.Printf("Failed to clone repository \"%s\": %s", pipeline.Repository.Origin, err)
 		return err
 	}
 
@@ -29,7 +30,7 @@ func RunPipeline(
 		logger.Printf("Preparing container")
 		containerID, err := createContainer(ctx, docker, stage)
 		if err != nil {
-			logger.Fatalf("Failed to prepaere container: %s", err)
+			logger.Fatalf("Failed to prepare container: %s", err)
 			return err
 		}
 		logger.Printf("Container created with ID \"%s\"", containerID)
